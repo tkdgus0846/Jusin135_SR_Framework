@@ -8,6 +8,7 @@ CTransform::CTransform(LPDIRECT3DDEVICE9 pGraphicDev)
 {
 	ZeroMemory(&m_vInfo, sizeof(m_vInfo));
 	D3DXMatrixIdentity(&m_matWorld);
+	D3DXMatrixIdentity(&m_matBill);
 }
 
 CTransform::CTransform(const CTransform & rhs)
@@ -15,6 +16,7 @@ CTransform::CTransform(const CTransform & rhs)
 	, m_vScale(rhs.m_vScale)
 	, m_vAngle(rhs.m_vAngle)
 	, m_matWorld(rhs.m_matWorld)
+	, m_matBill(rhs.m_matBill)
 {
 	for (size_t i = 0; i < INFO_END; ++i)
 		m_vInfo[i] = rhs.m_vInfo[i];
@@ -94,31 +96,27 @@ _int CTransform::Update_Component(const _float & fTimeDelta)
 		memcpy(&m_vInfo[i], &m_matWorld.m[i][0], sizeof(_vec3));
 
 	// 크기 변환
-	for (size_t i = 0; i < INFO_POS; ++i)
-	{
-		D3DXVec3Normalize(&m_vInfo[i], &m_vInfo[i]);
-		m_vInfo[i] *= *(((_float*)&m_vScale) + i);
-	}
+	_matrix matScale;
+	D3DXMatrixScaling(&matScale, m_vScale.x, m_vScale.y, m_vScale.z);
 
 	// 회전 변환
 	_matrix			matRot[ROT_END];
+	_matrix			matRotation;
 
 	D3DXMatrixRotationX(&matRot[ROT_X], m_vAngle.x);
 	D3DXMatrixRotationY(&matRot[ROT_Y], m_vAngle.y);
 	D3DXMatrixRotationZ(&matRot[ROT_Z], m_vAngle.z);
 
-	for (size_t i = 0; i < INFO_POS; ++i)
-	{
-		for (size_t j = 0; j < ROT_END; ++j)
-		{
-			D3DXVec3TransformNormal(&m_vInfo[i], &m_vInfo[i], &matRot[j]);
-		}
-	}
-	
-	// 위치 변환
+	matRotation = matRot[ROT_Y] * matRot[ROT_Z] * matRot[ROT_X];
 
-	for (size_t i = 0; i < INFO_END; ++i)
-		memcpy(&m_matWorld.m[i][0], &m_vInfo[i], sizeof(_vec3));
+	// 위치 변환
+	_matrix			matTrans;
+	D3DXMatrixTranslation(&matTrans, m_vInfo[INFO_POS].x, m_vInfo[INFO_POS].y, m_vInfo[INFO_POS].z);
+
+
+	m_matWorld = matScale * m_matBill * matRotation * matTrans;
+	/*for (size_t i = 0; i < INFO_END; ++i)
+	memcpy(&m_matWorld.m[i][0], &m_vInfo[i], sizeof(_vec3));*/
 
 	return 0;
 }
