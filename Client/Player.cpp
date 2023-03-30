@@ -19,9 +19,10 @@ HRESULT CPlayer::Ready_GameObject(void)
 
 	m_pTransform->m_vScale = { 1.f, 1.f, 1.f };
 	m_pTransform->m_vInfo[INFO_POS] = _vec3(10.f, 7.f, 30.f);
-	//m_pTransform->m_vAngle.x += D3DXToRadian(180.f);
 
 	_matrix projMatrix;
+	
+	//투영임
 	D3DXMatrixPerspectiveFovLH(&projMatrix, D3DXToRadian(60.f), (float)WINCX/WINCY, 1.f, 1000.f);
 	m_pGraphicDev->SetTransform(D3DTS_PROJECTION, &projMatrix);
 
@@ -42,8 +43,10 @@ _int CPlayer::Update_GameObject(const _float& fTimeDelta)
 	m_pTransform->m_vInfo[INFO_POS].y -= 1.f * fTimeDelta;
 
 	myPos = m_pTransform->m_vInfo[INFO_POS];
-	cameraPos = { myPos.x ,myPos.y + 7.f,myPos.z - 7.f };
-	D3DXMatrixLookAtLH(&viewMatrix, &cameraPos, &myPos, &up);
+
+	//카메라가 없어서 여기서 카메라인척함.
+	cameraPos = { 0.f ,0.f,-5.f };
+	D3DXMatrixLookAtLH(&viewMatrix, &cameraPos, &_vec3(3.f,0.f,0.f), &up);
 	m_pGraphicDev->SetTransform(D3DTS_VIEW, &viewMatrix);
 
 
@@ -66,14 +69,6 @@ void CPlayer::LateUpdate_GameObject(void)
 
 		float fDot = D3DXPlaneDotCoord(&PlaneVec[i], &playerFootPos);
 		bool bIsIn = terrainTex->IsInPlane(m_pTransform->m_vInfo[INFO_POS], i);
-		
-		if (fDot <  0.f && bIsIn)
-		{
-			m_pTransform->m_vInfo[INFO_POS].y -= fDot ;
-			int i = 0;
-			// collision detected
-			// take appropriate action (e.g. adjust player's position or velocity)
-		}
 	}
 	
 	// 충돌 처리 부분.
@@ -128,6 +123,10 @@ HRESULT CPlayer::Add_Component(void)
 	NULL_CHECK_RETURN(m_pCollider, E_FAIL);
 	m_uMapComponent[ID_DYNAMIC].insert({ L"Player_Collider", pComponent });
 	m_pCollider->Set_BoundingBox({3.f,3.f,3.f});
+
+	pComponent = m_pRigid = dynamic_cast<CRigidbody*>(Engine::Clone_Proto(L"Rigidbody", this));
+	NULL_CHECK_RETURN(m_pRigid, E_FAIL);
+	m_uMapComponent[ID_DYNAMIC].insert({ L"Player_Rigidbody", pComponent });
 	return S_OK;
 }
 
