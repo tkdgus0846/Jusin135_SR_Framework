@@ -16,7 +16,7 @@ public:
 	const _matrix*		Get_WorldMatrixPointer() { return &m_matWorld; }
 	void				Get_Info(INFO eType, _vec3* pInfo)
 	{
-		memcpy(pInfo, &m_matWorld.m[eType][0], sizeof(_vec3));
+		*pInfo = m_vInfo[eType];
 	}
 	const _vec3& Get_Scale()
 	{
