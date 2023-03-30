@@ -92,6 +92,7 @@ void CCollider::OnTirggerExit(const CCollider * other)
 	m_pGameObject->OnTirggerExit(other);
 }
 
+// 가로, 세로, 깊이 사이즈 넣어주면 됨.
 void CCollider::Set_BoundingBox(const _vec3 & vSize)
 {
 	D3DXCreateBox(m_pGraphicDev,
@@ -100,11 +101,11 @@ void CCollider::Set_BoundingBox(const _vec3 & vSize)
 		vSize.z,
 		&m_pMesh, NULL);
 	if (nullptr == m_pBoundingBox)
-		m_pBoundingBox = new BoundingBox(-vSize, vSize);
+		m_pBoundingBox = new BoundingBox(-vSize / 2, vSize / 2);
 	else
 	{
-		m_pBoundingBox->_offsetMax = vSize;
-		m_pBoundingBox->_offsetMin = -vSize;
+		m_pBoundingBox->_offsetMax = vSize / 2;
+		m_pBoundingBox->_offsetMin = -vSize / 2;
 		_vec3 offsetPoint;
 		m_pGameObject->m_pTransform->Get_Info(INFO_POS, &offsetPoint);
 		m_pBoundingBox->Offset(offsetPoint);
